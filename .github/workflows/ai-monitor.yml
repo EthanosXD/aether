@@ -1,0 +1,127 @@
+name: AI Network Monitor
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:          # Allow manual trigger
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Check Network Health
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          BOOTSTRAP_URL="https://aether-xcem.onrender.com"
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          ALERT_LABEL="network-alert"
+
+          # ── Check bootstrap server ──
+          HEALTH=$(curl -s --max-time 15 "$BOOTSTRAP_URL/health" || echo "ERROR")
+          PEERS_RAW=$(curl -s --max-time 15 "$BOOTSTRAP_URL/peers" || echo "ERROR")
+
+          if echo "$HEALTH" | grep -q '"status":"ok"'; then
+            SERVER_STATUS="online"
+            PEER_COUNT=$(echo "$PEERS_RAW" | jq -r '.count // 0')
+          else
+            SERVER_STATUS="offline"
+            PEER_COUNT=0
+          fi
+
+          echo "Bootstrap: $SERVER_STATUS | Peers: $PEER_COUNT"
+
+          # ── Handle outage ──
+          if [ "$SERVER_STATUS" = "offline" ]; then
+            # Check if an alert issue is already open
+            OPEN_ALERT=$(gh issue list \
+              --repo "$REPO" \
+              --label "$ALERT_LABEL" \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty')
+
+            if [ -z "$OPEN_ALERT" ]; then
+              # Create alert label if it doesn't exist
+              gh label create "$ALERT_LABEL" --color "d93f0b" --description "Network health alert" --repo "$REPO" 2>/dev/null || true
+
+              # Ask Claude to write the incident report
+              INCIDENT=$(curl -s -X POST https://api.anthropic.com/v1/messages \
+                -H "x-api-key: $ANTHROPIC_API_KEY" \
+                -H "anthropic-version: 2023-06-01" \
+                -H "content-type: application/json" \
+                -d "$(jq -n \
+                  --arg time "$TIMESTAMP" \
+                  '{
+                    model: "claude-haiku-4-5-20251001",
+                    max_tokens: 512,
+                    messages: [{
+                      role: "user",
+                      content: ("Write a short GitHub issue body reporting that the Aether bootstrap server at aether-xcem.onrender.com went offline at " + $time + ". Include: what is affected (peer discovery across the internet — LAN discovery still works), what users should do (check logs, LAN peers still connect), and that the team is investigating. Keep it under 150 words. Plain text, minimal markdown.")
+                    }]
+                  }'
+                )" | jq -r '.content[0].text')
+
+              gh issue create \
+                --repo "$REPO" \
+                --title "🚨 Bootstrap server offline — $TIMESTAMP" \
+                --body "$INCIDENT" \
+                --label "$ALERT_LABEL"
+
+              echo "Alert issue created"
+            else
+              echo "Alert already open (#$OPEN_ALERT), skipping"
+            fi
+
+          else
+            # ── Server is healthy — close any open alerts ──
+            OPEN_ALERT=$(gh issue list \
+              --repo "$REPO" \
+              --label "$ALERT_LABEL" \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty')
+
+            if [ -n "$OPEN_ALERT" ]; then
+              RECOVERY_MSG="✅ Bootstrap server is back online as of $TIMESTAMP. Active peers: $PEER_COUNT. Closing incident."
+              gh issue comment "$OPEN_ALERT" --repo "$REPO" --body "$RECOVERY_MSG"
+              gh issue close "$OPEN_ALERT" --repo "$REPO"
+              echo "Incident #$OPEN_ALERT resolved"
+            fi
+
+            # ── Post weekly network stats (Mondays at 9am UTC) ──
+            DAY=$(date -u '+%u')   # 1=Mon
+            HOUR=$(date -u '+%H')
+            if [ "$DAY" = "1" ] && [ "$HOUR" = "09" ]; then
+              STATS=$(curl -s -X POST https://api.anthropic.com/v1/messages \
+                -H "x-api-key: $ANTHROPIC_API_KEY" \
+                -H "anthropic-version: 2023-06-01" \
+                -H "content-type: application/json" \
+                -d "$(jq -n \
+                  --arg peers "$PEER_COUNT" \
+                  --arg time "$TIMESTAMP" \
+                  '{
+                    model: "claude-haiku-4-5-20251001",
+                    max_tokens: 512,
+                    messages: [{
+                      role: "user",
+                      content: ("Write a short, enthusiastic weekly network status update for the Aether P2P internet project. Current stats: " + $peers + " active nodes on the network as of " + $time + ". Celebrate the nodes running, mention that the network is growing, encourage people to install and run a node. Under 120 words. Friendly tone.")
+                    }]
+                  }'
+                )" | jq -r '.content[0].text')
+
+              gh issue create \
+                --repo "$REPO" \
+                --title "📊 Weekly Network Update — $TIMESTAMP" \
+                --body "$STATS" \
+                --label "network-update" 2>/dev/null || true
+
+              echo "Weekly update posted"
+            fi
+          fi

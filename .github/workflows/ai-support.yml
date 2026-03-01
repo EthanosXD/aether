@@ -1,0 +1,63 @@
+name: AI Support Agent
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    # Don't respond to our own comments
+    if: github.actor != 'github-actions[bot]'
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: AI Response
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          EVENT: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Build context depending on whether this is a new issue or a comment
+          if [ "$EVENT" = "issues" ]; then
+            CONTEXT="New issue titled: \"$ISSUE_TITLE\"\n\nContent:\n$ISSUE_BODY"
+          else
+            CONTEXT="Follow-up comment on issue \"$ISSUE_TITLE\":\n\n$COMMENT_BODY"
+          fi
+
+          # Call Claude API
+          RESPONSE=$(curl -s -X POST https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$(jq -n \
+              --arg context "$CONTEXT" \
+              '{
+                model: "claude-haiku-4-5-20251001",
+                max_tokens: 1024,
+                system: "You are the support AI for Aether, a free open-source peer-to-peer internet network. Aether lets people bypass ISPs and censorship by routing traffic through a network of community-run nodes. It uses a SOCKS5 proxy (localhost:1080), connects to a bootstrap server at aether-xcem.onrender.com, and is installed with a single curl command. Be helpful, friendly, and concise. If it is a bug report, ask for their OS and node logs. If it is a feature request, acknowledge it and explain the roadmap. If it is a question, answer it clearly. End with a note that a human maintainer will also review this. Do not use excessive formatting — plain text with minimal markdown.",
+                messages: [{role: "user", content: $context}]
+              }'
+            )")
+
+          # Extract the text from the response
+          COMMENT=$(echo "$RESPONSE" | jq -r '.content[0].text')
+
+          if [ -z "$COMMENT" ] || [ "$COMMENT" = "null" ]; then
+            echo "Failed to get AI response"
+            exit 0
+          fi
+
+          # Post the comment to the issue
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "$REPO" \
+            --body "$COMMENT"
