@@ -5,3 +5,6 @@ dist/
 node/aether-node
 node/aether-node2
 bootstrap/aether-bootstrap
+api/aether-api
+api/aether.db
+api/.env
