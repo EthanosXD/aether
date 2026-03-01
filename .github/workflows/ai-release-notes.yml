@@ -22,7 +22,7 @@ jobs:
 
       - name: Summarize Changes
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           COMMIT_SHA: ${{ github.sha }}
@@ -33,15 +33,16 @@ jobs:
           SHORT_SHA="${COMMIT_SHA:0:7}"
           TIMESTAMP=$(date -u '+%Y-%m-%d')
 
-          jq -n --arg msg "$COMMIT_MSG" --arg diff "$DIFF" --arg sha "$SHORT_SHA" \
-            '{model:"claude-haiku-4-5-20251001",max_tokens:512,messages:[{role:"user",content:("Write a short, friendly changelog entry for an Aether P2P network update. Commit: " + $sha + ". Message: " + $msg + ". Files changed: " + $diff + ". Write 2-4 bullet points summarizing what changed in plain English for non-technical users. Start with what is new or fixed, not technical details. Keep it under 100 words.")}]}' \
+          PROMPT="Write a short, friendly changelog entry for an Aether P2P network update. Commit: $SHORT_SHA. Message: $COMMIT_MSG. Files changed: $DIFF. Write 2-4 bullet points summarizing what changed in plain English for non-technical users. Start with what is new or fixed, not technical details. Keep it under 100 words."
+
+          jq -n --arg text "$PROMPT" \
+            '{contents: [{parts: [{text: $text}]}]}' \
             > /tmp/payload.json
 
-          SUMMARY=$(curl -s -X POST https://api.anthropic.com/v1/messages \
-            -H "x-api-key: $ANTHROPIC_API_KEY" \
-            -H "anthropic-version: 2023-06-01" \
+          SUMMARY=$(curl -s -X POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GEMINI_API_KEY" \
             -H "content-type: application/json" \
-            -d @/tmp/payload.json | jq -r '.content[0].text')
+            -d @/tmp/payload.json | jq -r '.candidates[0].content.parts[0].text')
 
           gh issue create \
             --repo "$REPO" \
