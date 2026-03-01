@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+.env
+node/aether-node
+node/aether-node2
+bootstrap/aether-bootstrap

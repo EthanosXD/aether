@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aether is a peer-to-peer internet network. No ISP required. No censorship. Free and open.">
+  <title>Aether — Internet That Belongs to Everyone</title>
+  <style>
+    :root {
+      --bg:       #08080f;
+      --surface:  #0f0f1a;
+      --border:   #1a1a2e;
+      --purple:   #7c6af7;
+      --purple2:  #a78bfa;
+      --green:    #4ade80;
+      --text:     #e2e2e2;
+      --muted:    #666;
+      --dim:      #333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--purple2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(8,8,15,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .nav-logo { font-size: 22px; font-weight: 700; color: var(--purple); letter-spacing: -0.5px; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--muted); }
+    .nav-links a { color: var(--muted); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-cta {
+      background: var(--purple);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.85; text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 120px 24px 100px;
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(124,106,247,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,106,247,0.1);
+      border: 1px solid rgba(124,106,247,0.3);
+      color: var(--purple2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    h1 {
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    h1 span { color: var(--purple); }
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--purple);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); text-decoration: none; }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--purple); text-decoration: none; }
+
+    /* ── Install snippet ── */
+    .install-box {
+      margin: 64px auto 0;
+      max-width: 500px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .install-bar {
+      background: #0a0a14;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .install-bar span { width: 10px; height: 10px; border-radius: 50%; }
+    .install-bar span:nth-child(1) { background: #ff5f57; }
+    .install-bar span:nth-child(2) { background: #febc2e; }
+    .install-bar span:nth-child(3) { background: #28c840; }
+    .install-cmd {
+      padding: 20px 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: var(--green);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .copy-btn {
+      background: var(--border);
+      border: none;
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: var(--dim); color: var(--text); }
+
+    /* ── Section ── */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--purple);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* ── How it works ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: var(--purple); }
+    .step-num {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--dim);
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .step h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .step p { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+    /* ── Features ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 56px;
+    }
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .feature h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ── Comparison ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 56px;
+    }
+    .compare-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .compare-card.aether { border-color: rgba(124,106,247,0.4); }
+    .compare-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .compare-card h3 span { color: var(--purple); }
+    .compare-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: var(--muted);
+      align-items: flex-start;
+    }
+    .compare-item .icon { flex-shrink: 0; font-size: 16px; }
+    .compare-item.good { color: var(--text); }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 24px;
+      background: linear-gradient(to bottom, var(--bg), #0d0d1f, var(--bg));
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .cta-section h2 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+    .cta-section p { font-size: 18px; color: var(--muted); margin-bottom: 40px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--dim);
+      font-size: 14px;
+    }
+    footer a { color: var(--dim); }
+    footer a:hover { color: var(--muted); }
+
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">Aether</div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="https://github.com/EthanosXD/aether">GitHub</a>
+  </div>
+  <a href="#install" class="nav-cta">Get Started</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Open Beta — Join the Network
+  </div>
+  <h1>Internet that belongs<br>to <span>everyone</span></h1>
+  <p class="hero-sub">
+    Aether is a peer-to-peer network that connects devices directly —
+    no ISP required, no central authority, no censorship.
+  </p>
+  <div class="hero-actions">
+    <a href="#install" class="btn-primary">Get Started Free</a>
+    <a href="https://github.com/EthanosXD/aether" class="btn-secondary">View Source</a>
+  </div>
+
+  <div class="install-box" id="install">
+    <div class="install-bar">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="install-cmd">
+      <span>$ curl -fsSL https://raw.githubusercontent.com/EthanosXD/aether/main/install.sh | sudo bash</span>
+      <button class="copy-btn" onclick="copy(this)">Copy</button>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- How it works -->
+<section id="how">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three steps to a<br>free internet</h2>
+  <p class="section-sub">No accounts. No configuration. Just install and connect.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Install Aether</h3>
+      <p>One command installs the Aether node on your machine and starts it as a background service automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Join the network</h3>
+      <p>Your node finds other Aether nodes automatically — on your local network and across the internet — with no manual setup.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Browse freely</h3>
+      <p>Point your browser's proxy to <code style="color:var(--green)">localhost:1080</code> and your traffic flows through the Aether network.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Features -->
+<section id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Built different</h2>
+  <p class="section-sub">No blockchain. No tokens. No middlemen. Just a network that works.</p>
+
+  <div class="features">
+    <div class="feature">
+      <span class="feature-icon">🌐</span>
+      <h3>No ISP Required</h3>
+      <p>Devices connect directly to each other. In areas with enough nodes, Aether can replace your ISP entirely.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🔒</span>
+      <h3>Censorship Resistant</h3>
+      <p>Traffic is distributed across hundreds of nodes. There's no single point to block, filter, or shut down.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">⚡</span>
+      <h3>Automatic Discovery</h3>
+      <p>Nodes find each other automatically on your local network and across the internet. Zero configuration.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🆓</span>
+      <h3>Free Forever</h3>
+      <p>No subscriptions, no tokens, no hidden fees. Aether is free to use and open source.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🔓</span>
+      <h3>Open Source</h3>
+      <p>Every line of code is public. Audit it, contribute to it, or run your own piece of the network.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🖥️</span>
+      <h3>Runs Anywhere</h3>
+      <p>Any Linux machine can be an Aether node — laptop, Raspberry Pi, old desktop, cloud server.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Comparison -->
+<section>
+  <div class="section-label">Comparison</div>
+  <h2 class="section-title">Why Aether?</h2>
+  <p class="section-sub">Traditional internet access vs. the Aether network.</p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <h3>Traditional ISP</h3>
+      <div class="compare-item"><span class="icon">✗</span> Monthly subscription fees</div>
+      <div class="compare-item"><span class="icon">✗</span> Content filtering and throttling</div>
+      <div class="compare-item"><span class="icon">✗</span> Single point of failure</div>
+      <div class="compare-item"><span class="icon">✗</span> Your data passes through their servers</div>
+      <div class="compare-item"><span class="icon">✗</span> No service in rural or remote areas</div>
+    </div>
+    <div class="compare-card aether">
+      <h3><span>Aether</span> Network</h3>
+      <div class="compare-item good"><span class="icon">✓</span> Free to use, always</div>
+      <div class="compare-item good"><span class="icon">✓</span> No filtering or censorship</div>
+      <div class="compare-item good"><span class="icon">✓</span> Distributed — no single point of failure</div>
+      <div class="compare-item good"><span class="icon">✓</span> Traffic routed through peers you choose</div>
+      <div class="compare-item good"><span class="icon">✓</span> Works anywhere there are nodes</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Join the network today</h2>
+  <p>Free, open, and ready to run on your machine right now.</p>
+  <a href="#install" class="btn-primary" style="font-size:18px;padding:16px 40px">Get Started Free</a>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div style="font-size:20px;font-weight:700;color:var(--purple);margin-bottom:16px">Aether</div>
+  <div style="margin-bottom:16px;display:flex;gap:24px;justify-content:center">
+    <a href="https://github.com/EthanosXD/aether">GitHub</a>
+    <a href="#">Docs</a>
+    <a href="#">Community</a>
+  </div>
+  <div>Internet that belongs to everyone.</div>
+</footer>
+
+<script>
+  function copy(btn) {
+    const cmd = 'curl -fsSL https://raw.githubusercontent.com/EthanosXD/aether/main/install.sh | sudo bash';
+    navigator.clipboard.writeText(cmd).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>
