@@ -20,9 +20,11 @@ func (n *Node) startBootstrap() {
 		return
 	}
 
-	// Register immediately, then on an interval to act as a keep-alive
-	n.registerWithBootstrap()
-	n.fetchPeersFromBootstrap()
+	// Register in background so a slow/offline bootstrap server never blocks startup
+	go func() {
+		n.registerWithBootstrap()
+		n.fetchPeersFromBootstrap()
+	}()
 
 	go func() {
 		ticker := time.NewTicker(registerInterval)

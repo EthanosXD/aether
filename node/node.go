@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -19,6 +20,7 @@ type Node struct {
 	mu        sync.RWMutex
 	quit      chan struct{}
 	server    *http.Server
+	tlsCert   tls.Certificate
 }
 
 // Peer represents another node on the network
@@ -30,9 +32,10 @@ type Peer struct {
 
 func NewNode() *Node {
 	return &Node{
-		id:    generateID(),
-		peers: make(map[string]*Peer),
-		quit:  make(chan struct{}),
+		id:      generateID(),
+		peers:   make(map[string]*Peer),
+		quit:    make(chan struct{}),
+		tlsCert: loadOrCreateTLS(),
 	}
 }
 

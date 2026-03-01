@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
@@ -41,9 +42,9 @@ func (n *Node) startProxy() {
 	}()
 }
 
-// startExitServer listens for traffic forwarded by other Aether peers
+// startExitServer listens for traffic forwarded by other Aether peers (TLS)
 func (n *Node) startExitServer() {
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", exitPort))
+	listener, err := tls.Listen("tcp", fmt.Sprintf(":%d", exitPort), tlsServerConfig(n.tlsCert))
 	if err != nil {
 		log.Printf("Exit server error: %v", err)
 		return
@@ -156,7 +157,7 @@ func (n *Node) dialDestination(dest string) (net.Conn, string) {
 	return conn, "direct"
 }
 
-// dialThroughPeer opens a new connection to a peer's exit server and requests forwarding
+// dialThroughPeer opens a new TLS connection to a peer's exit server and requests forwarding
 func (n *Node) dialThroughPeer(peer *Peer, dest string) (net.Conn, error) {
 	host, _, err := net.SplitHostPort(peer.Address)
 	if err != nil {
@@ -164,7 +165,8 @@ func (n *Node) dialThroughPeer(peer *Peer, dest string) (net.Conn, error) {
 	}
 
 	exitAddr := fmt.Sprintf("%s:%d", host, exitPort)
-	conn, err := net.DialTimeout("tcp", exitAddr, 5*time.Second)
+	dialer := &net.Dialer{Timeout: 5 * time.Second}
+	conn, err := tls.DialWithDialer(dialer, "tcp", exitAddr, tlsClientConfig(n.tlsCert))
 	if err != nil {
 		return nil, err
 	}

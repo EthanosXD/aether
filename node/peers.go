@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -31,14 +32,15 @@ type peerInfo struct {
 	Address string `json:"address"`
 }
 
-// startPeerServer listens for incoming peer TCP connections
+// startPeerServer listens for incoming peer TLS connections
 func (n *Node) startPeerServer() {
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", peerPort))
+	tlsCfg := tlsServerConfig(n.tlsCert)
+	listener, err := tls.Listen("tcp", fmt.Sprintf(":%d", peerPort), tlsCfg)
 	if err != nil {
 		log.Fatalf("Peer server failed to start: %v", err)
 	}
 
-	log.Printf("Peer server listening on TCP port %d", peerPort)
+	log.Printf("Peer server listening on TCP+TLS port %d", peerPort)
 
 	go func() {
 		defer listener.Close()
@@ -57,13 +59,14 @@ func (n *Node) startPeerServer() {
 	}()
 }
 
-// connectToPeer initiates an outbound connection to a known peer
+// connectToPeer initiates an outbound TLS connection to a known peer
 func (n *Node) connectToPeer(id, addr string) {
 	if n.hasPeer(id) {
 		return
 	}
 
-	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
+	dialer := &net.Dialer{Timeout: dialTimeout}
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr, tlsClientConfig(n.tlsCert))
 	if err != nil {
 		return
 	}
