@@ -34,20 +34,21 @@ jobs:
             CONTEXT="Follow-up comment on issue \"$ISSUE_TITLE\":\n\n$COMMENT_BODY"
           fi
 
+          # Build JSON payload safely using a temp file
+          SYSTEM="You are the support AI for Aether, a free open-source peer-to-peer internet network. Aether lets people bypass ISPs and censorship by routing traffic through a network of community-run nodes. It uses a SOCKS5 proxy (localhost:1080), connects to a bootstrap server at aether-xcem.onrender.com, and is installed with a single curl command. Be helpful, friendly, and concise. If it is a bug report, ask for their OS and node logs. If it is a feature request, acknowledge it and explain the roadmap. If it is a question, answer it clearly. End with a note that a human maintainer will also review this. Do not use excessive formatting."
+
+          jq -n \
+            --arg system "$SYSTEM" \
+            --arg context "$CONTEXT" \
+            '{model:"claude-haiku-4-5-20251001",max_tokens:1024,system:$system,messages:[{role:"user",content:$context}]}' \
+            > /tmp/payload.json
+
           # Call Claude API
           RESPONSE=$(curl -s -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$(jq -n \
-              --arg context "$CONTEXT" \
-              '{
-                model: "claude-haiku-4-5-20251001",
-                max_tokens: 1024,
-                system: "You are the support AI for Aether, a free open-source peer-to-peer internet network. Aether lets people bypass ISPs and censorship by routing traffic through a network of community-run nodes. It uses a SOCKS5 proxy (localhost:1080), connects to a bootstrap server at aether-xcem.onrender.com, and is installed with a single curl command. Be helpful, friendly, and concise. If it is a bug report, ask for their OS and node logs. If it is a feature request, acknowledge it and explain the roadmap. If it is a question, answer it clearly. End with a note that a human maintainer will also review this. Do not use excessive formatting — plain text with minimal markdown.",
-                messages: [{role: "user", content: $context}]
-              }'
-            )")
+            -d @/tmp/payload.json)
 
           # Extract the text from the response
           COMMENT=$(echo "$RESPONSE" | jq -r '.content[0].text')

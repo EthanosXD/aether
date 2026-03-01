@@ -33,23 +33,15 @@ jobs:
           SHORT_SHA="${COMMIT_SHA:0:7}"
           TIMESTAMP=$(date -u '+%Y-%m-%d')
 
+          jq -n --arg msg "$COMMIT_MSG" --arg diff "$DIFF" --arg sha "$SHORT_SHA" \
+            '{model:"claude-haiku-4-5-20251001",max_tokens:512,messages:[{role:"user",content:("Write a short, friendly changelog entry for an Aether P2P network update. Commit: " + $sha + ". Message: " + $msg + ". Files changed: " + $diff + ". Write 2-4 bullet points summarizing what changed in plain English for non-technical users. Start with what is new or fixed, not technical details. Keep it under 100 words.")}]}' \
+            > /tmp/payload.json
+
           SUMMARY=$(curl -s -X POST https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$(jq -n \
-              --arg msg "$COMMIT_MSG" \
-              --arg diff "$DIFF" \
-              --arg sha "$SHORT_SHA" \
-              '{
-                model: "claude-haiku-4-5-20251001",
-                max_tokens: 512,
-                messages: [{
-                  role: "user",
-                  content: ("Write a short, friendly changelog entry for an Aether P2P network update. Commit: " + $sha + ". Message: " + $msg + ". Files changed: " + $diff + ". Write 2-4 bullet points summarizing what changed in plain English for non-technical users. Start with whats new or fixed, not technical details. Keep it under 100 words.")
-                }]
-              }'
-            )" | jq -r '.content[0].text')
+            -d @/tmp/payload.json | jq -r '.content[0].text')
 
           gh issue create \
             --repo "$REPO" \
