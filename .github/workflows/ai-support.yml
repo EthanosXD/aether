@@ -50,11 +50,14 @@ jobs:
             -H "content-type: application/json" \
             -d @/tmp/payload.json)
 
+          echo "API response type: $(echo "$RESPONSE" | jq -r '.type // "unknown"')"
+          echo "API error: $(echo "$RESPONSE" | jq -r '.error.message // "none"')"
+
           # Extract the text from the response
           COMMENT=$(echo "$RESPONSE" | jq -r '.content[0].text')
 
           if [ -z "$COMMENT" ] || [ "$COMMENT" = "null" ]; then
-            echo "Failed to get AI response"
+            echo "Failed to get AI response — raw: $RESPONSE"
             exit 0
           fi
 
