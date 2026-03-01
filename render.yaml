@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: aether-bootstrap
+    runtime: docker
+    dockerfilePath: ./bootstrap/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 7070

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -13,8 +14,14 @@ import (
 const (
 	version     = "0.1.0"
 	peerTimeout = 2 * time.Minute
-	port        = 7070
 )
+
+func listenPort() string {
+	if p := os.Getenv("PORT"); p != "" {
+		return p
+	}
+	return "7070"
+}
 
 type PeerRecord struct {
 	ID       string    `json:"id"`
@@ -39,8 +46,9 @@ func main() {
 	mux.HandleFunc("/peers", bs.handlePeers)
 	mux.HandleFunc("/health", bs.handleHealth)
 
-	log.Printf("Aether Bootstrap Server v%s listening on port %d", version, port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
+	port := listenPort()
+	log.Printf("Aether Bootstrap Server v%s listening on port %s", version, port)
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
 
 // handleRegister receives a node announcing itself to the network
