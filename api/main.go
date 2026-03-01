@@ -25,7 +25,7 @@ var cfg Config
 func main() {
 	cfg = Config{
 		Port:               getenv("PORT", "9090"),
-		DBPath:             getenv("DB_PATH", "./aether.db"),
+		DBPath:             getenv("DB_PATH", "/tmp/aether.db"),
 		JWTSecret:          getenv("JWT_SECRET", randomSecret()),
 		StripeSecretKey:    getenv("STRIPE_SECRET_KEY", ""),
 		StripePriceID:      getenv("STRIPE_PRICE_ID", ""),
@@ -40,6 +40,11 @@ func main() {
 	initDB(cfg.DBPath)
 
 	mux := http.NewServeMux()
+
+	// Health
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		respondJSON(w, 200, map[string]string{"status": "ok", "version": version})
+	})
 
 	// Auth
 	mux.HandleFunc("/api/signup",  handleSignup)

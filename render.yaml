@@ -8,3 +8,23 @@ services:
     envVars:
       - key: PORT
         value: 7070
+
+  - type: web
+    name: aether-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 9090
+      - key: BASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
