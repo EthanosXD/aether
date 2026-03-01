@@ -6,7 +6,7 @@ set -e
 #  https://aether.network
 # ─────────────────────────────────────────
 
-BOOTSTRAP_URL="${AETHER_BOOTSTRAP:-http://localhost:7070}"
+BOOTSTRAP_URL="${AETHER_BOOTSTRAP:-https://aether-xcem.onrender.com}"
 INSTALL_DIR="/usr/local/bin"
 SERVICE_NAME="aether"
 REPO_DIR="/opt/aether"

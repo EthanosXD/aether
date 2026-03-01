@@ -43,7 +43,7 @@ make run
 
 # Dashboard → http://localhost:8080
 # SOCKS5 proxy → localhost:1080
-# Bootstrap API → http://localhost:7070/health
+# Bootstrap API → https://aether-xcem.onrender.com/health
 ```
 
 ## Project Structure

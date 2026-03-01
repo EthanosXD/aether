@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var bootstrapURL = flag.String("bootstrap", "http://localhost:7070", "Bootstrap server URL")
+var bootstrapURL = flag.String("bootstrap", "https://aether-xcem.onrender.com", "Bootstrap server URL")
 
 const registerInterval = 30 * time.Second
 
